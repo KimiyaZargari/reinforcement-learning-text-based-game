@@ -34,9 +34,17 @@ def epsilon_greedy(state_1, state_2, q_func, epsilon):
     Returns:
         (int, int): the indices describing the action/object to take
     """
-    # TODO Your code here
-    action_index, object_index = None, None
+    if np.random.rand() < epsilon:
+        # Exploration: choose a random action
+        action_index = np.random.randint(q_func.shape[2])
+        object_index = np.random.randint(q_func.shape[3])
+    else:
+        # Exploitation: choose the action with the highest Q-value
+        q_values = q_func[state_1, state_2, :, :]
+        action_index, object_index = np.unravel_index(np.argmax(q_values), q_values.shape)
+    
     return (action_index, object_index)
+
 
 
 # pragma: coderesponse end
@@ -95,33 +103,40 @@ def run_episode(for_training):
     """
     epsilon = TRAINING_EP if for_training else TESTING_EP
 
-    epi_reward = None
-    # initialize for each episode
-    # TODO Your code here
+    epi_reward = 0.0
+    gamma = GAMMA      # Discount factor
+    discount_factor = 1.0  # Initialize discount factor
 
     (current_room_desc, current_quest_desc, terminal) = framework.newGame()
 
     while not terminal:
         # Choose next action and execute
-        # TODO Your code here
+        current_state_1 = dict_room_desc[current_room_desc]
+        current_state_2 = dict_quest_desc[current_quest_desc]
+        action_index, object_index = epsilon_greedy(current_state_1, current_state_2, q_func, epsilon)
+        
+        # Execute the chosen action and observe the result
+        (next_room_desc, next_quest_desc, reward, terminal) = framework.step_game(
+            current_room_desc, current_quest_desc, action_index, object_index
+        )
 
         if for_training:
             # update Q-function.
-            # TODO Your code here
+            tabular_q_learning(q_func,current_state_1,current_state_2,action_index,object_index,reward,dict_room_desc[next_room_desc],dict_quest_desc[next_quest_desc],terminal )
             pass
 
         if not for_training:
-            # update reward
-            # TODO Your code here
+            epi_reward += discount_factor * reward
+            discount_factor *= gamma  # Update discount factor for the next step
             pass
 
         # prepare next step
-        # TODO Your code here
+        current_room_desc = next_room_desc
+        current_quest_desc = next_quest_desc
 
     if not for_training:
         return epi_reward
-
-
+    
 # pragma: coderesponse end
 
 
