@@ -60,12 +60,23 @@ def tabular_q_learning(q_func, current_state_1, current_state_2, action_index,
     Returns:
         None
     """
-    # TODO Your code here
-    q_func[current_state_1, current_state_2, action_index,
-           object_index] = 0  # TODO Your update here
+    current_q = q_func[current_state_1, current_state_2, action_index, object_index]
+    if terminal:
+        q_func[current_state_1, current_state_2, action_index, object_index] = (1 - ALPHA) * current_q + ALPHA * reward
+        return None
+    
+    max_next_q = float('-inf')
+    for a in range(q_func.shape[2]):
+        for b in range(q_func.shape[3]):
+            temp = q_func[next_state_1, next_state_2, a, b]
+            if temp > max_next_q:
+                max_next_q = temp
+    
+    q_func[current_state_1, current_state_2, action_index, object_index] = (
+        (1 - ALPHA) * current_q + ALPHA * (reward + GAMMA * max_next_q)
+    )
 
-    return None  # This function shouldn't return anything
-
+    return None
 
 # pragma: coderesponse end
 
